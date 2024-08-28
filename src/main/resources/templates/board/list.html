@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+	<meta charset="UTF-8">
+	<title>게시판</title>
+	<script th:src="@{/js/jquery-3.7.1.min.js}"></script>
+	<script>
+		$(document).ready(function() {
+			$('#writeButton').click(function() {
+				window.location.href = "/board/write";
+			});
+
+			list();
+
+			$('#searchCategory').change(function() {
+				searchByCategory();
+			});
+
+			$('#searchWord').keyup(function() {
+				searchByWord();
+			});
+		});
+
+		// 전체 목록 불러오기
+		function list() {
+			$.ajax({
+				url: '/board/listAll',
+				type: 'get',
+				success: function(list) {
+					console.log(list);
+					$('#output').empty();
+
+					$(list).each(function(i, obj) {
+						let soldoutText = obj.soldout ? '판매완료' : '판매중';
+						let html = `
+							<tr>
+								<td>${obj.boardNum}</td>
+								<td>${soldoutText}</td>
+								<td>${obj.category}</td>
+								<td><a href="/board/read?boardNum=${obj.boardNum}">${obj.title}</a></td>
+								<td>${obj.price}</td>
+								<td>${obj.memberId}</td>
+								<td>${obj.inputDate}</td>
+							</tr>
+						`;
+						$('#output').append(html);
+					});
+				},
+				error: function() {
+					alert('게시판 불러오기 실패');
+				}
+			});
+		}
+
+		// 카테고리 검색
+		function searchByCategory() {
+			let category = $('#searchCategory').val();
+			$.ajax({
+				url: '/board/searchByCategory',
+				type: 'get',
+				data: { searchCategory: category },
+				success: function(list) {
+					$('#output').empty();
+					$(list).each(function(i, obj) {
+						let soldoutText = obj.soldout ? '판매완료' : '판매중';
+						let html = `
+							<tr>
+								<td>${obj.boardNum}</td>
+								<td>${soldoutText}</td>
+								<td>${obj.category}</td>
+								<td><a href="/board/read?boardNum=${obj.boardNum}">${obj.title}</a></td>
+								<td>${obj.price}</td>
+								<td>${obj.memberId}</td>
+								<td>${obj.inputDate}</td>
+							</tr>
+						`;
+						$('#output').append(html);
+					});
+				},
+				error: function() {
+					alert('카테고리 검색 실패');
+				}
+			});
+		}
+
+		// 키워드 검색
+		function searchByWord() {
+			let category = $('#searchCategory').val();
+			let keyword = $('#searchWord').val();
+
+			$.ajax({
+				url: '/board/searchByKeyword',
+				type: 'get',
+				data: { searchCategory: category, searchWord: keyword },
+				success: function(list) {
+					$('#output').empty();
+					$(list).each(function(i, obj) {
+						let soldoutText = obj.soldout ? '판매완료' : '판매중';
+						let html = `
+							<tr>
+								<td>${obj.boardNum}</td>
+								<td>${soldoutText}</td>
+								<td>${obj.category}</td>
+								<td><a href="/board/read?boardNum=${obj.boardNum}">${obj.title}</a></td>
+								<td>${obj.price}</td>
+								<td>${obj.memberId}</td>
+								<td>${obj.inputDate}</td>
+							</tr>
+						`;
+						$('#output').append(html);
+					});
+				},
+				error: function() {
+					alert('키워드 검색 실패');
+				}
+			});
+		}
+	</script>
+</head>
+<body>
+	<h1>[ 거래 게시판 ]</h1>
+	<p><button id="writeButton">글쓰기</button></p>
+	
+	<div id="searchDiv">
+		<span>검색조건</span>
+		<select id="searchCategory">
+			<option value="전체">전체 카테고리 보기</option>
+			<option value="컴퓨터">컴퓨터</option>
+			<option value="카메라">카메라</option>
+			<option value="자동차">자동차</option>
+		</select>
+		<input id="searchWord" type="text">
+	</div>
+	<br>
+	
+	<div id="listDiv">
+		<table>
+			<thead>
+				<tr>
+					<th>번호</th>
+					<th>상태</th>
+					<th>카테고리</th>
+					<th>제목</th>
+					<th>판매가격</th>
+					<th>작성자</th>
+					<th>작성일</th>
+				</tr>
+			</thead>
+			<tbody id="output">
+			</tbody>
+		</table>
+	</div>
+</body>
+</html>
