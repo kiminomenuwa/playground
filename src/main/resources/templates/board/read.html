@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ko"
+	  xmlns:th="http://www.thymeleaf.org"
+	  xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+	<meta charset="UTF-8">
+	<title>게시판</title>
+	<style>
+		
+	</style>
+	<script th:src="@{/js/jquery-3.7.1.min.js}"></script>
+	<script>
+		$(document).ready(function() {
+			
+			// 페이지 로드시 리플 로드
+			let boardNum = $('#boardNum').val();
+			replyList(boardNum);
+			
+			// 리플 저장 기능
+			$('#replyForm').submit(function(event) {
+		
+				let replyData = {
+					boardNum: $('#boardNum').val(),
+					replyText: $('#replyText').val()
+				};
+		
+				$.ajax({
+					url: '/board/replyWrite',
+					type: 'post',
+					contentType: 'application/json',
+					data: JSON.stringify(replyData),
+					success: function(response) {
+						alert('리플이 저장되었습니다.');
+						$('#replyText').val('');
+						replyList(boardNum);
+					},
+					error: function() {
+						alert('리플 저장에 실패했습니다. 다시 시도해 주세요.');
+					}
+				});
+			});
+			
+			// 게시글 삭제 버튼
+			$('#deleteButton').click(function() {
+				let boardNum = $(this).data('num');
+				if (confirm('삭제하시겠습니까?')) {
+					location.href = 'delete?boardNum=' + boardNum;
+				};
+			});
+			
+			// 구매하기 버튼 클릭 이벤트
+		    $('#buyButton').click(function() {
+		        let boardNum = $('#boardNum').val(); // 현재 게시글 번호 가져오기
+
+		        $.ajax({
+		            url: '/board/buy',
+		            type: 'get',
+		            data: { boardNum: boardNum },
+		            success: function(response) {
+		                alert('구매 요청이 성공적으로 처리되었습니다.');
+		                location.reload();
+		            },
+		            error: function() {
+		                alert('구매 요청에 실패했습니다. 다시 시도해 주세요.');
+		            }
+		        });
+		    });
+		});
+		
+		
+		function replyList(boardNum) {
+			$.ajax({
+				url: '/board/getReplyList',
+				type: 'get',
+				data: { boardNum: boardNum },
+				success: function(replyList) {
+					$('#output').empty();
+					$(replyList).each(function(i, obj) {
+						let html = `
+							<table>
+								<tr><td>${obj.replyNum}</td></tr>
+								<tr><td>${obj.memberId}</td></tr>
+								<tr><td>${obj.replyText}</td></tr>
+							</table>
+						`;
+						$('#output').append(html);
+					});
+				}
+			});
+		}
+	</script>
+</head>
+<body>
+	<h1>[ 판매상품 상세보기 ]</h1>
+	
+	<table th:each="bd:${board}">
+		<tr>
+			<th>번호</th>
+			<td th:text="${bd.boardNum}"></td>
+		</tr>
+		<tr>
+			<th>판매자</th>
+			<td th:text="${bd.memberId}"></td>
+		</tr>
+		<tr>
+			<th>카테고리</th>
+			<td th:text="${bd.category}"></td>
+		</tr>
+		<tr>
+			<th>제목</th>
+			<td th:text="${bd.title}"></td>
+		</tr>
+		<tr>
+			<th>내용</th>
+			<td th:text="${bd.contents}"></td>
+		</tr>
+		<tr>
+			<th>판매가격</th>
+			<td th:text="${bd.price}"></td>
+		</tr>
+		<tr>
+			<th>상태</th>
+			<td><span th:text="${bd.soldout ? '판매완료' : '판매중'}"></span></td>
+		</tr>
+		<tr>
+			<th>구매자</th>
+			<td th:text="${bd.buyer != null ? bd.buyer : ''}"></td>
+		</tr>
+	</table>
+	
+	<!-- 구매하기 버튼은 판매완료가 아닐 때만 보임 -->
+	<div th:if="${!board.soldout and #authentication.name != board.memberId}">
+		<button id="buyButton">구매하기</button>
+	</div>
+	
+	
+	<!-- 글 수정/삭제 (본인글일 때만 보임) -->
+	<div sec:authorize="isAuthenticated()">
+        <div th:if="${#authentication.name == board.memberId}">
+            <button id="deleteButton" th:data-num="${board.boardNum}">삭제하기</button>
+        </div>
+    </div>
+	<br>
+	<!-- 리플 작성 (구현 안됨)-->
+	<form id="replyForm">
+		<input type="hidden" name="boardNum" id="boardNum" th:value="${board.boardNum}">
+		<span>리플입력</span>
+		<input type="text" name="replyText" id="replyText" style="width:500px;">
+		<input type="submit" value="저장">
+	</form>
+	
+	<div id="output">
+	
+	</div>
+	
+</body>
+</html>
