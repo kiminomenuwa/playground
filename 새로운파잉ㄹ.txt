@@ -1,0 +1,8 @@
+git branch : 브랜치 확인
+git checkout -b YoonYoon : 브랜치를 YoonYoon으로 바꿈
+git branch : 브랜치가 YoonYoon으로 온거 확인
+git push origin YoonYoon : ??
+git add . : 전부 넣음
+git status : git 상태를 확인(commit하라고 나옴)
+git commit -m "메세지 적기" : 커밋됨
+git push :  git push --set-upstream origin YoonYoon 이거를 복사해서 넣어줌
